@@ -30,7 +30,7 @@ st.title("Process Package Files")
 if "files_processed" not in st.session_state:
     st.session_state.files_processed = 0
     st.session_state.packages_processed = 0
-    st.session_state.file_summaries = []
+    st.session_state.summaries = []
 
 uploaded_file = st.file_uploader("Upload package file", key="package_file")
 process_clicked = st.button("Process file", key="process")
@@ -39,7 +39,7 @@ reset_clicked = st.button("Reset", key="reset")
 if reset_clicked:
     st.session_state.files_processed = 0
     st.session_state.packages_processed = 0
-    st.session_state.file_summaries = []
+    st.session_state.summaries = []
 
 columns = st.columns(2)
 with columns[0]:
@@ -65,7 +65,7 @@ if process_clicked and uploaded_file is not None:
     summary = f"{len(parsed_packages)} packages written to {output_path}"
     st.session_state.files_processed += 1
     st.session_state.packages_processed += len(parsed_packages)
-    st.session_state.file_summaries.append(summary)
+    st.session_state.summaries.append(summary)
 
-for summary in st.session_state.file_summaries:
+for summary in st.session_state.summaries:
     st.info(summary)
