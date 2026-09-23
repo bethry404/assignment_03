@@ -20,21 +20,52 @@ Run it:  Run and Debug -> "Streamlit Run: Current File"   (see README Reference 
 Test it: pytest tests/test_streamlit.py -k process_files
 """
 
-# --- The page ---------------------------------------------------------------------
-#
-# No scaffolding. You have written two of these now, and this one does the same
-# processing as process_file.py — the difference is that it remembers.
-#
-# What you have to work out for yourself:
-#
-#   - the three parts of the session-state pattern: initialise once, update on the
-#     click, display from state — README Reference #6
-#   - a button, key="process", so that choosing a file and clicking are two
-#     different things
-#   - two st.metric cards, "Files processed" and "Packages processed", side by side
-#     in st.columns(2), on the page from the first run
-#   - one st.info line per file processed so far, kept in a list
-#
-# README Step 7 names the two traps. The tests are built around them: choosing a
-# file without clicking must change nothing, and a rerun with the same file still
-# chosen must not count it again.
+import json
+
+import streamlit as st
+from packaging_parser import parse_packaging
+
+st.title("Process Package Files")
+
+if "files_processed" not in st.session_state:
+    st.session_state.files_processed = 0
+    st.session_state.packages_processed = 0
+    st.session_state.file_summaries = []
+
+uploaded_file = st.file_uploader("Upload package file", key="package_file")
+process_clicked = st.button("Process file", key="process")
+reset_clicked = st.button("Reset", key="reset")
+
+if reset_clicked:
+    st.session_state.files_processed = 0
+    st.session_state.packages_processed = 0
+    st.session_state.file_summaries = []
+
+columns = st.columns(2)
+with columns[0]:
+    st.metric("Files processed", st.session_state.files_processed)
+with columns[1]:
+    st.metric("Packages processed", st.session_state.packages_processed)
+
+if process_clicked and uploaded_file is not None:
+    text = uploaded_file.getvalue().decode("utf-8")
+    parsed_packages = []
+
+    for line in text.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        parsed_packages.append(parse_packaging(line))
+
+    json_name = uploaded_file.name.replace(".txt", ".json")
+    output_path = f"data/{json_name}"
+    with open(output_path, "w", encoding="utf-8") as output_file:
+        json.dump(parsed_packages, output_file)
+
+    summary = f"{len(parsed_packages)} packages written to {output_path}"
+    st.session_state.files_processed += 1
+    st.session_state.packages_processed += len(parsed_packages)
+    st.session_state.file_summaries.append(summary)
+
+for summary in st.session_state.file_summaries:
+    st.info(summary)
