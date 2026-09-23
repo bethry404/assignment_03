@@ -41,12 +41,6 @@ if reset_clicked:
     st.session_state.packages_processed = 0
     st.session_state.summaries = []
 
-columns = st.columns(2)
-with columns[0]:
-    st.metric("Files processed", st.session_state.files_processed)
-with columns[1]:
-    st.metric("Packages processed", st.session_state.packages_processed)
-
 if process_clicked and uploaded_file is not None:
     text = uploaded_file.getvalue().decode("utf-8")
     parsed_packages = []
@@ -66,6 +60,12 @@ if process_clicked and uploaded_file is not None:
     st.session_state.files_processed += 1
     st.session_state.packages_processed += len(parsed_packages)
     st.session_state.summaries.append(summary)
+
+columns = st.columns(2)
+with columns[0]:
+    st.metric("Files processed", st.session_state.files_processed)
+with columns[1]:
+    st.metric("Packages processed", st.session_state.packages_processed)
 
 for summary in st.session_state.summaries:
     st.info(summary)
